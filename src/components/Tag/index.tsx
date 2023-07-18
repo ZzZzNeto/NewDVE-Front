@@ -17,7 +17,7 @@ export default function Tag({ icon, name }: TagProps) {
           src={icon}
         />
       </div>
-      <Typography className="text-[10px] ml-2">{name}</Typography>
+      <Typography className="text-[12px] text-text-500 ml-2">{name}</Typography>
     </div>
   );
 }

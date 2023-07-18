@@ -11,7 +11,7 @@ export default function SubLayout({ children } : any){
             <header className="w-full flex-wrap justify-between items-center pt-[30px] pb-[30px] pl-[270px] pr-[270px] bg-blue-700 flex ">
                 <NavBar/>
             </header>
-            <main className="h-fit min-h-[1200px] bg-background w-full">
+            <main className="h-fit bg-background w-full">
                 {children}
             </main>
             <footer className="flex  flex-wrap justify-between items-center pt-[30px] pb-[30px] pl-[270px] pr-[270px] min-h-[700px] bg-cover max-h-fit w-full bg-no-repeat bg-center bg-footer-bg">
