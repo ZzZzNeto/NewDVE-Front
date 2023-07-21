@@ -1,33 +1,50 @@
 "use client";
 import { Typography, Grid, Rating, Button } from "@mui/material";
-import SubLayout from "../sublayout";
+import SubLayout from "../../sublayout";
 import Tag from "@/components/Tag";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FavoriteBorder, Favorite } from "@mui/icons-material";
-export default function AnnoucementDetail() {
-  const tags = [
-    {
-      name: "Tecnologia",
-      icon: "https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg",
-    },
-    {
-      name: "Tecnologia",
-      icon: "https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg",
-    },
-    {
-      name: "Tecnologia",
-      icon: "https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg",
-    },
-  ];
+import api from "@/services/api";
+
+interface AnnoucementDetailProps {
+  params: {
+    id: string;
+  };
+}
+export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
   const [image, setImage] = useState(0);
-  const [value, setValue] = useState<number | null>(2);
+  const [value, setValue] = useState<number | null>(0);
   const [favorite, setFavorite] = useState<boolean | null>(false);
   const images = [
     { image: "/assets/map.png", value: 0 },
     { image: "/assets/mapImage.png", value: 1 },
     { image: "/assets/footer.png", value: 2 },
   ];
+
+  const [announcement, setAnnouncement] = useState();
+
+  const handleAnnouncement = async () => {
+    const response = await api.get(`/announces/${params.id}/`);
+
+    if (response.data) {
+      setAnnouncement(response.data);
+      console.log(response.data);
+    }
+  };
+
+  const handleFavoritedAnnouncement = async () => {
+    await api.post(`/announces/${params.id}/save_unsave/`);
+  };
+
+  const handleRateAnnouncement = async (rate: number) => {
+    await api.post(`/ratings/`, { rate: rate, announcement: params.id });
+    setValue(rate);
+  };
+
+  useEffect(() => {
+    handleAnnouncement();
+  }, []);
 
   return (
     <SubLayout>
@@ -65,7 +82,7 @@ export default function AnnoucementDetail() {
         <Grid item xs={6} className="bg-white pt-10">
           <div className="ml-10">
             <p className="font-bold text-4xl text-text-500 ">
-              Burguer King, Loja Centro
+              {announcement?.company_name}
             </p>
             <div className="flex mt-2">
               <Rating
@@ -83,8 +100,8 @@ export default function AnnoucementDetail() {
             </div>
 
             <div className="flex mt-6 gap-3">
-              {tags.map(({ icon, name }, index) => (
-                <Tag key={index} name={name} icon={icon} />
+              {announcement?.tags.map(({ icon, tag_name }, index) => (
+                <Tag key={index} name={tag_name} icon={icon} />
               ))}
             </div>
             <div className="mt-5 flex flex-col gap-4">
@@ -96,7 +113,7 @@ export default function AnnoucementDetail() {
                       className="text-base ml-2"
                       style={{ fontWeight: "400" }}
                     >
-                      16h - 22h
+                      {announcement?.schedule}
                     </span>
                   </p>
                 </div>
@@ -107,7 +124,7 @@ export default function AnnoucementDetail() {
                       className="text-base ml-2"
                       style={{ fontWeight: "400" }}
                     >
-                      Não remunerado
+                      {announcement?.salary}
                     </span>
                   </p>
                 </div>
@@ -116,7 +133,7 @@ export default function AnnoucementDetail() {
               <p className="font-bold text-text-500 text-xl">
                 CH/S:
                 <span className="text-base ml-2" style={{ fontWeight: "400" }}>
-                  30h, Segunda - Sexta
+                  {announcement?.journey}
                 </span>
               </p>
 
@@ -124,7 +141,9 @@ export default function AnnoucementDetail() {
                 <div>
                   <p className="font-bold text-text-500 text-xl">
                     Vagas:
-                    <span className="text-base ml-2 text-blue-700">30</span>
+                    <span className="text-base ml-2 text-blue-700">
+                      {announcement?.vacancies}
+                    </span>
                   </p>
                 </div>
                 <div>
@@ -134,7 +153,7 @@ export default function AnnoucementDetail() {
                       className="text-base ml-2"
                       style={{ fontWeight: "400" }}
                     >
-                      29/08/2023
+                      {announcement?.deadline}
                     </span>
                   </p>
                 </div>
@@ -142,26 +161,26 @@ export default function AnnoucementDetail() {
               <p className="font-bold text-text-500 text-xl">
                 Benéficios:
                 <span className="text-base ml-2" style={{ fontWeight: "400" }}>
-                  Vale transporte, alimentação
+                  {announcement?.benefits}
                 </span>
               </p>
               <p className="font-bold text-text-500 text-xl">
                 Requisitos:
                 <span className="text-base ml-2" style={{ fontWeight: "400" }}>
-                  Experiencia na area, formação em gastronomia
+                  {announcement?.requeriments}
                 </span>
               </p>
               <p className="font-bold text-text-500 text-xl">
                 Descrição:
                 <span className="text-base ml-2" style={{ fontWeight: "400" }}>
-                  Buscamos um cozinheiro experiente, que saiba trabalhar com
-                  carne, e que consiga trabalhar bem em equipe
+                  {announcement?.description}
                 </span>
               </p>
               <p className="font-bold text-text-500 text-xl">
                 Endereço:
                 <span className="text-base ml-2" style={{ fontWeight: "400" }}>
-                  Rua das Tanajuras, N25, Pau dos Ferros RN
+                  {announcement?.address.street}, {announcement?.address.number}
+                  , {announcement?.address.city}
                 </span>
               </p>
             </div>
@@ -185,8 +204,10 @@ export default function AnnoucementDetail() {
               />
             </div>
             <div>
-              <p className="text-text-500 font-bold text-3xl">Burguer King</p>
-              <p className="text-gray-600">Pau dos Ferros - RN</p>
+              <p className="text-text-500 font-bold text-3xl">
+                {announcement?.company_name}
+              </p>
+              <p className="text-gray-600">{announcement?.address.city}</p>
             </div>
             <div className="flex flex-col ml-10">
               <p className="text-gray-600 text-center">Avaliar</p>
@@ -195,9 +216,7 @@ export default function AnnoucementDetail() {
                 value={value}
                 precision={0.5}
                 className="text-warning-600"
-                onChange={(event, newValue) => {
-                  setValue(newValue);
-                }}
+                onChange={(event, newValue) => handleRateAnnouncement(newValue)}
                 size="large"
               />
             </div>
@@ -205,7 +224,7 @@ export default function AnnoucementDetail() {
           <div className="flex items-center justify-end flex-1">
             <Button
               disableRipple={true}
-              onClick={() => setFavorite(!favorite)}
+              onClick={handleFavoritedAnnouncement}
               className="hover:bg-white mr-4"
             >
               {favorite ? (
@@ -220,7 +239,10 @@ export default function AnnoucementDetail() {
                 />
               )}
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-600 text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8" style={{textTransform: "none"}}>
+            <Button
+              className="bg-blue-600 hover:bg-blue-600 text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8"
+              style={{ textTransform: "none" }}
+            >
               Inscrever-se
             </Button>
           </div>

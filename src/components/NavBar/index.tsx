@@ -30,9 +30,6 @@ export default function NavBar(){
                     <li>
                         <Link href={'/announcements'}><p className='text-[20px] text-white transition hover:text-gray-300 font-bold'>Anuncios</p></Link>
                     </li>
-                    <li>
-                        <Link href={'/annoucementDetail'}><p className='text-[20px] text-white transition hover:text-gray-300 font-bold'>detalhes de anuncio</p></Link>
-                    </li>
                 </ul>
                 <div>
 
