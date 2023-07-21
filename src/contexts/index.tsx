@@ -27,12 +27,13 @@ export function MyContextProvider({ children }: MyContextProviderProps) {
     let refresh = localStorage.getItem('refresh')
 
     if(access){
-      let verify = att(access, refresh)
-      if(!verify){
+      let verify = att(access, refresh).then(result => {
+      if(!result){
         get_refresh(refresh)
-      }
+      }})
     }else{
-      if(path != "/login" && path != "/"){
+      console.log(path)
+      if(path !== "/login" && "/"){
         router.push('/login')
       }
     }
@@ -43,12 +44,20 @@ export function MyContextProvider({ children }: MyContextProviderProps) {
   };
 
   const get_refresh = async (refresh : string | null) => {
-    const response = await axios.post(
-      `http://127.0.0.1:8000/api/token/`, {
+    try{
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/token/`, {
           refresh : refresh,
-      });
+        });
+    
       localStorage.setItem('token', response.data.access)
       att(response.data.access, refresh)
+    }catch{
+      localStorage.removeItem('token')
+      localStorage.removeItem('refresh')
+      updateData(" ")
+      router.push('/login')
+    }
   }
 
   const att = async (access : string, refresh : string | null) => {
@@ -57,6 +66,7 @@ export function MyContextProvider({ children }: MyContextProviderProps) {
         `http://127.0.0.1:8000/api/users/me`, {headers: { Authorization: `Bearer ${access}` }} 
       );
       setData({...user.data, 'access' : access, 'refresh' : refresh})
+      return true
     }catch{
         return false
     }}

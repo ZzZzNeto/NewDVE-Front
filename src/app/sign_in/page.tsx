@@ -128,14 +128,10 @@ export default function Login() {
   const onSubmit = handleSubmit((data) => create_user(data));
 
   return (
-    <Grid wrap="wrap" container className="flex flex-wrap">
-      <Grid
-        item
-        xs={5}
-        className="bg-blue-700 h-screen flex text-white items-center"
-      >
-        <div className="w-full h-full flex flex-col items-center px-20 py-20 justify-between">
-          <Image alt="logo" className="self-start" src={logo} />
+    <Grid wrap='wrap' container className='flex flex-wrap'>
+      <Grid item xs={5} className='bg-blue-700 h-screen flex text-white items-center'>
+        <div className='w-full h-full flex flex-col items-center px-20 py-20 justify-between'>
+        <Link className='self-start' href={'/'}><Image alt='logo' src={logo} /></Link>
           <div>
             <h1 style={{ fontSize: "40px" }} className="font-bold mb-3">
               Começe sua jornada conosco!
