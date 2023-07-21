@@ -5,11 +5,13 @@ import Link from "next/link";
 
 interface Tags {
   icon: string;
-  name: string;
+  tag_name: string;
 }
 interface AnnoucementProps {
   companyName: string;
+  companyImage: string;
   image: string;
+  id: number;
   rating: number;
   quantity_rating: number;
   tags: Tags[];
@@ -18,6 +20,8 @@ interface AnnoucementProps {
 
 export default function CardHomepage({
   companyName,
+  id,
+  companyImage,
   image,
   rating,
   quantity_rating,
@@ -38,7 +42,7 @@ export default function CardHomepage({
         <div className=" relative flex justify-end">
           <Avatar
             alt="Remy Sharp"
-            src={"./assets/Profile.jpg"}
+            src={companyImage}
             sx={{
               width: 50,
               height: 50,
@@ -75,13 +79,13 @@ export default function CardHomepage({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
-          {tags.map(({ icon, name }, index) => (
-            <Tag key={index} name={name} icon={icon} />
+          {tags.map(({ icon, tag_name }, index) => (
+            <Tag key={index} tag_name={tag_name} icon={`http://127.0.0.1:8000${icon}`}/>
           ))}
         </div>
         <div className="flex justify-between mt-4 mb-4 items-center">
           <Typography className="text-xs font-bold">{city}</Typography>
-          <Link href={'/'} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">ver mais</Link>
+          <Link href={`/announcement`} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">ver mais</Link>
         </div>
       </div>
     </div>

@@ -3,21 +3,21 @@ import Image from "next/image";
 
 interface TagProps {
   icon: string;
-  name: string;
+  tag_name: string;
 }
 
-export default function Tag({ icon, name }: TagProps) {
+export default function Tag({ icon, tag_name }: TagProps) {
   return (
-    <div className="flex items-center border border-text-500 rounded-lg px-2 py-1">
+    <div className="flex items-center border border-text-500 mr-[10px] rounded-lg px-2 py-1">
       <div>
         <img
           alt="icone da tag"
-          height={25} 
-          width={25}
+          height={20} 
+          width={20}
           src={icon}
         />
       </div>
-      <Typography className="text-[10px] ml-2">{name}</Typography>
+      <Typography className="text-[10px] ml-2">{tag_name}</Typography>
     </div>
   );
 }
