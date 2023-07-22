@@ -35,13 +35,16 @@ export default function Announcement({companyName, image, rating, quantity, tags
 
   return (
     <div className="bg-white flex rounded-[20px]">
+      <div className="w-[200px] h-[200px]">
       <Image
         src={`http://127.0.0.1:8000${image}`}
         alt={"imagem do anuncio"}
-        width={200}
-        height={200}
-        className="rounded-[20px]"
+        width={0}
+        height={0}
+        sizes="100vw"
+        className="rounded-[20px] w-full h-full object-cover"
       />
+      </div>
       <div className="flex flex-col mt-5 w-full ">
         <div className="flex justify-between px-4 ">
           <div className="flex">
@@ -76,7 +79,7 @@ export default function Announcement({companyName, image, rating, quantity, tags
         <div className="mx-4">
           <div className="flex gap-3">
             {tags.map(({ icon, tag_name }, index) => (
-              <Tag key={index} name={tag_name} icon={`http://127.0.0.1:8000${icon}`} />
+              <Tag key={index} tag_name={tag_name} icon={`http://127.0.0.1:8000${icon}`} />
             ))}
           </div>
         </div>

@@ -2,7 +2,7 @@
 import axios from "axios"
 import SubLayout from '@/app/sublayout'
 
-import { useContext, useEffect } from 'react';
+import { useContext, useDebugValue, useEffect, useState } from 'react';
 import { MyContext  } from '@/contexts'
 import "react-multi-carousel/lib/styles.css";
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,27 @@ const responsive = {
 export default function Profile() {
     const { data, updateData } = useContext(MyContext);
     const router = useRouter()
+    const [lat, setLat] = useState('')
+    const [lon, setLon] = useState('')
+
+    const displayMap = async () => {
+        if(data?.address){
+            const queryString = `housenumber=${data?.address?.number}&street=${encodeURIComponent(data?.address?.street)}&postcode=${data?.address?.cep}&city=${encodeURIComponent(data?.address?.city)}&state=${encodeURIComponent(data?.address?.state)}&format=json&apiKey=3b011d230823499d831285fb00b49c04`;
+            const apiUrl = `https://api.geoapify.com/v1/geocode/search?${queryString}`;
+
+            const response = await axios.get(
+                apiUrl
+            );
+            setLat(response.data.results[0].lat)
+            setLon(response.data.results[0].lon)
+            console.log(response.data.results[0].lon)
+            console.log(response.data.results[0].lat)
+        }
+    }
+
+    useEffect(() => {
+        displayMap()
+    }, [data])
 
     const logout = () => {
         localStorage.removeItem('token')
@@ -63,6 +84,7 @@ export default function Profile() {
                         {data.group != "Company" && data.group != "IFRN_coordenation" && <Link href={'#inscriptions'}><p className="font-bold text-[18px] mb-[15px] text-gray-600">Minhas incrições</p></Link>}
                         {data.group != "Company" && data.group != "IFRN_coordenation" && <Link href={'#saved'}><p className="font-bold text-[18px] mb-[15px] text-gray-600">Anúncios salvos</p></Link>}
                         {(data.group == "Company" || data.group == "IFRN_coordenation") && <Link href={'#mine'}><p className="font-bold text-[18px] mb-[15px] text-gray-600">Meus anúncios</p></Link>}
+                        {(data.group == "Company" || data.group == "IFRN_coordenation") && <Link href={'announcement_create'}><p className="font-bold text-[18px] mb-[15px] text-gray-600">Criar um anúncio</p></Link>}
                         <div className="flex justify-between mt-[25px]">
                             <Button style={{textTransform: 'none'}} variant="contained" className="bg-red-600 font-bold text-[15px] hover:bg-red-700 rounded-[15px] py-[10px]" onClick={logout}>Sair</Button>
                             <Link className=" text-white px-[15px] bg-blue-700 font-bold text-[15px] hover:bg-blue-800 rounded-[15px] py-[10px]" href="/profile_edit">Editar</Link>
@@ -93,6 +115,13 @@ export default function Profile() {
                             </div>}
                             <div className="mt-[10px]">
                                 <p className="text-[18px] mr-[50px] text-gray-800"><span className="mr-[10px] font-bold">Endereço: </span>{data.address ? (`${data.address.street}, ${data.address.number}, ${data.address.city} - ${data.address.state}`) : ("Nenhum")}</p>
+                                <Image 
+                                    className="my-[30px]"
+                                    width={600}
+                                    height={400}
+                                    src={`https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${lon},${lat}&zoom=15.9318&marker=lonlat:${lon},${lat};type:material;color:%23ff0000;size:large;icon:home;iconsize:small&apiKey=3b011d230823499d831285fb00b49c04`}
+                                    alt="map"
+                                    />
                             </div>
                             <div className="mt-[10px]">
                                 <p className="mr-[10px] text-[18px] text-gray-800 font-bold">Sobre mim: </p>

@@ -33,7 +33,7 @@ export function MyContextProvider({ children }: MyContextProviderProps) {
       }})
     }else{
       console.log(path)
-      if(path !== "/login" && "/"){
+      if(path !== "/login" && path !== "/"){
         router.push('/login')
       }
     }
