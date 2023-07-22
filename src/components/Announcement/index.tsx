@@ -35,13 +35,16 @@ export default function Announcement({companyName, image, rating, quantity, tags
 
   return (
     <div className="bg-white flex rounded-[20px]">
+      <div className="w-[200px] h-[200px]">
       <Image
         src={`http://127.0.0.1:8000${image}`}
         alt={"imagem do anuncio"}
-        width={200}
-        height={200}
-        className="rounded-[20px]"
+        width={0}
+        height={0}
+        sizes="100vw"
+        className="rounded-[20px] w-full h-full object-cover"
       />
+      </div>
       <div className="flex flex-col mt-5 w-full ">
         <div className="flex justify-between px-4 ">
           <div className="flex">
