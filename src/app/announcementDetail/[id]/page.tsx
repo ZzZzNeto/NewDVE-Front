@@ -6,53 +6,123 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { FavoriteBorder, Favorite } from "@mui/icons-material";
 import api from "@/services/api";
+import axios from "axios";
 
 interface AnnoucementDetailProps {
   params: {
     id: string;
   };
 }
+
+interface Tag {
+  id: number;
+  tag_name: string;
+  icon: string;
+}
+interface Inscript {
+  id: number;
+  email: string;
+  name: string;
+}
+
+interface Images {
+  id: number;
+  image: string;
+  announcement: number;
+}
+interface Announcement {
+  id: number;
+  tags: Tag[];
+  schedule: string;
+  salary: number;
+  journey: string;
+  vacancies: number;
+  deadline: String;
+  benefits: string;
+  requeriments: string;
+  description: string;
+  address: {
+    id: number;
+    state: string;
+    city: string;
+    district: string;
+    street: string;
+    number: string;
+    cep: string;
+  }
+  curriculum: string;
+  course: string;
+  total_workload: string;
+  inscripts: Inscript[];
+  creator: {
+    id: number;
+    email: string;
+    name: string;
+  }
+  images: Images[];
+  company_name: string;
+  rate: number;
+  total_rates: number;
+  inscript: boolean;
+  favorite: boolean;
+  rated: boolean;
+}
 export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
   const [image, setImage] = useState(0);
   const [value, setValue] = useState<number | null>(0);
-  const [favorite, setFavorite] = useState<boolean | null>(false);
-  const images = [
-    { image: "/assets/map.png", value: 0 },
-    { image: "/assets/mapImage.png", value: 1 },
-    { image: "/assets/footer.png", value: 2 },
-  ];
-
-  const [announcement, setAnnouncement] = useState();
+  const [lat, setLat] = useState("");
+  const [lon, setLon] = useState("");
+  const [announcement, setAnnouncement] = useState<Announcement[] | null>(null);
   const [loadAnnouncemet, setLoadAnnouncemet] = useState(false);
+
+  const displayMap = async () => {
+    if (announcement?.address) {
+      const queryString = `housenumber=${
+        announcement?.address?.number
+      }&street=${encodeURIComponent(announcement?.address?.street)}&postcode=${
+        announcement?.address?.cep
+      }&city=${encodeURIComponent(
+        announcement?.address?.city
+      )}&state=${encodeURIComponent(
+        announcement?.address?.state
+      )}&format=json&apiKey=3b011d230823499d831285fb00b49c04`;
+      const apiUrl = `https://api.geoapify.com/v1/geocode/search?${queryString}`;
+
+      const response = await axios.get(apiUrl);
+      setLat(response.data.results[0].lat);
+      setLon(response.data.results[0].lon);
+      console.log(response.data.results[0].lon);
+      console.log(response.data.results[0].lat);
+    }
+  };
+
   const handleAnnouncement = async () => {
     const response = await api.get(`/announces/${params.id}/`);
 
     if (response.data) {
       setAnnouncement(response.data);
-      console.log(response.data);
+      displayMap()
     }
   };
 
   const handleFavoritedAnnouncement = async () => {
     await api.post(`/announces/${params.id}/save_unsave/`);
-    setLoadAnnouncemet(true)
+    setLoadAnnouncemet(!loadAnnouncemet);
   };
 
   const handleRateAnnouncement = async (rate: number) => {
     await api.post(`/ratings/`, { rate: rate, announcement: params.id });
     setValue(rate);
-    setLoadAnnouncemet(true);
-
+    setLoadAnnouncemet(!loadAnnouncemet);
   };
 
   const handleInscriptAnnouncement = async () => {
     await api.post(`/announces/${params.id}/subscribe_unsubscribe/`);
-    setLoadAnnouncemet(true);
+    setLoadAnnouncemet(!loadAnnouncemet);
   };
 
   useEffect(() => {
     handleAnnouncement();
-    setLoadAnnouncemet(false)
   }, [loadAnnouncemet]);
 
   return (
@@ -60,31 +130,34 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
       <Grid container className="bg-background ">
         <Grid item xs={6} className="bg-background">
           <div className="flex justify-center items-center h-full flex-col">
-            <Image
-              src={images[image].image}
-              alt="foto de mapa"
-              height={500}
-              width={500}
-              className="mt-5"
-            />
+            {announcement?.images && (
+              <Image
+                src={`http://127.0.0.1:8000${announcement?.images[image].image}`}
+                alt="foto de mapa"
+                height={500}
+                width={500}
+                className="mt-5"
+              />
+            )}
 
             <div className="flex gap-4 mt-10">
-              {images.map(({ image, value }, index) => (
-                <Button
-                  onClick={() => setImage(value)}
-                  disableRipple={true}
-                  className="hover:bg-background"
-                >
-                  <Image
-                    key={index}
-                    src={image}
-                    alt="foto de mapa"
-                    height={80}
-                    width={80}
-                    className="mt-5"
-                  />
-                </Button>
-              ))}
+              {announcement?.images &&
+                announcement?.images.map(({ image, id }, index) => (
+                  <Button
+                    onClick={() => setImage(index)}
+                    disableRipple={true}
+                    className="hover:bg-background"
+                  >
+                    <Image
+                      key={index}
+                      src={`http://127.0.0.1:8000${image}`}
+                      alt="foto de mapa"
+                      height={80}
+                      width={80}
+                      className="mt-5"
+                    />
+                  </Button>
+                ))}
             </div>
           </div>
         </Grid>
@@ -103,8 +176,12 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
                 size="large"
               />
               <div className="flex ml-2 items-center">
-                <p className="font-bold text-sm text-text-500">{announcement?.rate}</p>
-                <p className="font-bold text-xs ml-1 text-text-500">(<span>{announcement?.total_rates}</span>)</p>
+                <p className="font-bold text-sm text-text-500">
+                  {announcement?.rate}
+                </p>
+                <p className="font-bold text-xs ml-1 text-text-500">
+                  (<span>{announcement?.total_rates}</span>)
+                </p>
               </div>
             </div>
 
@@ -194,11 +271,11 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               </p>
             </div>
             <Image
-              src={"/assets/map.png"}
-              alt="foto de mapa"
-              height={500}
-              width={500}
-              className="mt-5 mb-5"
+              className="my-[30px]"
+              width={600}
+              height={400}
+              src={`https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${lon},${lat}&zoom=15.9318&marker=lonlat:${lon},${lat};type:material;color:%23ff0000;size:large;icon:home;iconsize:small&apiKey=3b011d230823499d831285fb00b49c04`}
+              alt="map"
             />
           </div>
         </Grid>
@@ -222,7 +299,7 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               <p className="text-gray-600 text-center">Avaliar</p>
               <Rating
                 name="read-only"
-                value={announcement?.rated ? announcement?.rated : 0 }
+                value={announcement?.rated ? announcement?.rated : 0}
                 precision={0.5}
                 className="text-warning-600"
                 onChange={(event, newValue) => handleRateAnnouncement(newValue)}
@@ -249,11 +326,15 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               )}
             </Button>
             <Button
-              className={` ${announcement?.inscript ? " bg-danger-600 hover:bg-danger-600" : " bg-blue-600 hover:bg-blue-600"} text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8`}
+              className={` ${
+                announcement?.inscript
+                  ? " bg-danger-600 hover:bg-danger-600"
+                  : " bg-blue-600 hover:bg-blue-600"
+              } text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8`}
               style={{ textTransform: "none" }}
               onClick={handleInscriptAnnouncement}
             >
-              {announcement?.inscript ? 'Cancelar inscrição' : 'Inscrever-se'}
+              {announcement?.inscript ? "Cancelar inscrição" : "Inscrever-se"}
             </Button>
           </div>
         </div>
