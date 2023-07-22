@@ -76,7 +76,7 @@ export default function Announcement({companyName, image, rating, quantity, tags
         <div className="mx-4">
           <div className="flex gap-3">
             {tags.map(({ icon, tag_name }, index) => (
-              <Tag key={index} name={tag_name} icon={`http://127.0.0.1:8000${icon}`} />
+              <Tag key={index} tag_name={tag_name} icon={`http://127.0.0.1:8000${icon}`} />
             ))}
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function Announcement({companyName, image, rating, quantity, tags
             </p>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end mb-5">
           <Link
             className="bg-blue-600 hover:bg-blue-600 text-white px-4 font-semibold py-2 rounded-lg text-sm  font-poppins mr-8"
             href={`/announcementDetail/${id}`}

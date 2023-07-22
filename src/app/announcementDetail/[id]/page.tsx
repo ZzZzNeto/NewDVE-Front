@@ -23,7 +23,7 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
   ];
 
   const [announcement, setAnnouncement] = useState();
-
+  const [loadAnnouncemet, setLoadAnnouncemet] = useState(false);
   const handleAnnouncement = async () => {
     const response = await api.get(`/announces/${params.id}/`);
 
@@ -35,16 +35,25 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
 
   const handleFavoritedAnnouncement = async () => {
     await api.post(`/announces/${params.id}/save_unsave/`);
+    setLoadAnnouncemet(true)
   };
 
   const handleRateAnnouncement = async (rate: number) => {
     await api.post(`/ratings/`, { rate: rate, announcement: params.id });
     setValue(rate);
+    setLoadAnnouncemet(true);
+
+  };
+
+  const handleInscriptAnnouncement = async () => {
+    await api.post(`/announces/${params.id}/subscribe_unsubscribe/`);
+    setLoadAnnouncemet(true);
   };
 
   useEffect(() => {
     handleAnnouncement();
-  }, []);
+    setLoadAnnouncemet(false)
+  }, [loadAnnouncemet]);
 
   return (
     <SubLayout>
@@ -87,21 +96,21 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
             <div className="flex mt-2">
               <Rating
                 name="read-only"
-                value={4.5}
-                precision={0.1}
+                value={Number(announcement?.rate)}
+                precision={0.5}
                 className="text-warning-600"
                 readOnly
                 size="large"
               />
               <div className="flex ml-2 items-center">
-                <p className="font-bold text-sm text-text-500">4,5</p>
-                <p className="font-bold text-xs ml-1 text-text-500">(126)</p>
+                <p className="font-bold text-sm text-text-500">{announcement?.rate}</p>
+                <p className="font-bold text-xs ml-1 text-text-500">(<span>{announcement?.total_rates}</span>)</p>
               </div>
             </div>
 
             <div className="flex mt-6 gap-3">
               {announcement?.tags.map(({ icon, tag_name }, index) => (
-                <Tag key={index} name={tag_name} icon={icon} />
+                <Tag key={index} tag_name={tag_name} icon={icon} />
               ))}
             </div>
             <div className="mt-5 flex flex-col gap-4">
@@ -213,7 +222,7 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               <p className="text-gray-600 text-center">Avaliar</p>
               <Rating
                 name="read-only"
-                value={value}
+                value={announcement?.rated ? announcement?.rated : 0 }
                 precision={0.5}
                 className="text-warning-600"
                 onChange={(event, newValue) => handleRateAnnouncement(newValue)}
@@ -227,7 +236,7 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               onClick={handleFavoritedAnnouncement}
               className="hover:bg-white mr-4"
             >
-              {favorite ? (
+              {announcement?.favorite ? (
                 <Favorite
                   sx={{ width: 48, height: 48 }}
                   className="text-danger-600"
@@ -240,10 +249,11 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
               )}
             </Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-600 text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8"
+              className={` ${announcement?.inscript ? " bg-danger-600 hover:bg-danger-600" : " bg-blue-600 hover:bg-blue-600"} text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8`}
               style={{ textTransform: "none" }}
+              onClick={handleInscriptAnnouncement}
             >
-              Inscrever-se
+              {announcement?.inscript ? 'Cancelar inscrição' : 'Inscrever-se'}
             </Button>
           </div>
         </div>
