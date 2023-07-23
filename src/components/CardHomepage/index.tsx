@@ -16,6 +16,7 @@ interface AnnoucementProps {
   quantity_rating: number;
   tags: Tags[];
   city: string;
+  expired: boolean;
 }
 
 export default function CardHomepage({
@@ -26,6 +27,7 @@ export default function CardHomepage({
   rating,
   quantity_rating,
   tags,
+  expired,
   city,
 }: AnnoucementProps) {
   return (
@@ -85,7 +87,7 @@ export default function CardHomepage({
         </div>
         <div className="flex justify-between mt-4 mb-4 items-center">
           <Typography className="text-xs font-bold">{city}</Typography>
-          <Link href={`/announcementDetail/${id}`} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">ver mais</Link>
+          <Link href={expired ? (`/inscripts/${id}`) : (`/announcementDetail/${id}`)} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">{expired ? ('ver inscritos') : ('ver mais')}</Link>
         </div>
       </div>
     </div>

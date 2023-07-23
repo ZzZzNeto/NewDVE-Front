@@ -200,8 +200,8 @@ export default function Profile() {
                         <h1 className="font-bold text-[40px] my-[30px] pb-[10px] text-gray-800">Meus anúncios</h1>
                         {data.my_announcements && (data.my_announcements.length > 0 ? (
                             <Carousel responsive={responsive}>
-                                {data.my_announcements.map(({ id,company_name,company_image,main_image,rate,total_rates,city,tags }, index) => (
-                                    <div key={index} className="w-[300px]"><CardHomepage id={id} companyName={company_name} companyImage={`http://127.0.0.1:8000${company_image.profile_picture}`} rating={rate} quantity_rating={total_rates} city={city} tags={tags} image={`http://127.0.0.1:8000${main_image.image}`}/></div>    
+                                {data.my_announcements.map(({ id,company_name,company_image,main_image,rate,total_rates,city,tags, expired }, index) => (
+                                    <div key={index} className="w-[300px]"><CardHomepage id={id} companyName={company_name} expired={expired} companyImage={`http://127.0.0.1:8000${company_image.profile_picture}`} rating={rate} quantity_rating={total_rates} city={city} tags={tags} image={`http://127.0.0.1:8000${main_image.image}`}/></div>    
                                 ))}
                             </Carousel>
                         ) : 
