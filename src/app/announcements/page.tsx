@@ -22,13 +22,61 @@ import { useEffect, useState } from "react";
 import { Search } from "@mui/icons-material";
 import axios from "axios";
 import api from "@/services/api";
-export default function Announcements() {
-  const [age, setAge] = useState("");
+import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+interface Tag {
+  id: number;
+  tag_name: string;
+  icon: string;
+}
+interface Inscript {
+  id: number;
+  email: string;
+  name: string;
+}
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setAge(event.target.value as string);
+interface Images {
+  id: number;
+  image: string;
+  announcement: number;
+}
+interface Announcement {
+  id: number;
+  tags: Tag[];
+  schedule: string;
+  salary: number;
+  journey: string;
+  vacancies: number;
+  deadline: String;
+  benefits: string;
+  requeriments: string;
+  description: string;
+  address: {
+    id: number;
+    state: string;
+    city: string;
+    district: string;
+    street: string;
+    number: string;
+    cep: string;
   };
-
+  curriculum: string;
+  course: string;
+  total_workload: string;
+  inscripts: Inscript[];
+  creator: {
+    id: number;
+    email: string;
+    name: string;
+  };
+  images: Images[];
+  company_name: string;
+  rate: number;
+  total_rates: number;
+  inscript: boolean;
+  favorite: boolean;
+  rated: boolean;
+}
+export default function Announcements() {
   const schema = yup
     .object({
       search: yup.string(),
@@ -48,19 +96,21 @@ export default function Announcements() {
     resolver: yupResolver(schema),
   });
 
-
-  const [annoucements, setAnnouncements] = useState([]);
+  const [annoucements, setAnnouncements] = useState<Announcement[]>([]);
   const [tags, setTags] = useState([]);
-
-
+  const [pagination, setPagination] = useState();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [quantityPaginate, setQuantityPaginate] = useState()
   const onSubmit = handleSubmit(async (data) => {
     const response = await api.get(
       `/announces/?search=${data.search ? data.search : ""}&order=${
         data.order ? data.order : ""
-      }&rentable=${data.stipendiary ? data.stipendiary : ""}&tags=${data.tags && data.tags}`
+      }&rentable=${data.stipendiary ? data.stipendiary : ""}&tags=${
+        data.tags && data.tags
+      }`
     );
 
-    setAnnouncements(response.data);
+    setAnnouncements(response.data.results);
   });
 
   const optionsSelectOrderBy = [
@@ -68,27 +118,67 @@ export default function Announcements() {
     { label: "Mais recentes", value: "creation_time" },
     { label: "Melhor avaliado", value: "rate" },
   ];
+
   const optionsSelectStipendiary = [
     { label: "Remunerado", value: "true" },
     { label: "Não remunerado", value: "false" },
   ];
 
-  const optionsSelect = [
-    { label: "Opção 1", value: 0 },
-    { label: "Opção 2", value: 1 },
-    { label: "Opção 3", value: 2 },
-  ];
-
   const handleAnnouncement = async () => {
     const response = await api.get("/announces/");
-    if (response.data.length > 0) {
-      setAnnouncements(response.data);
+    if (response.data.results.length > 0) {
+      setAnnouncements(response.data.results);
+      setPagination(response.data);
+      setQuantityPaginate(response.data.results.length)
     }
   };
+
+  const handleNextPaginateAnnouncement = async (onNext: string) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const response = await axios.get(onNext, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.results.length > 0) {
+        setAnnouncements(response.data.results);
+        setPagination(response.data);
+        setCurrentPage(currentPage + 1);
+      }
+    }
+  };
+
+  const handlePagePaginateAnnouncement = async (number: string) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const response = await axios.get(`http://localhost:8000/api/announces/?page=${number}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.results.length > 0) {
+        setAnnouncements(response.data.results);
+        setPagination(response.data);
+        setCurrentPage(Number(number));
+      }
+    }
+  };
+
+  const handlePreviousPaginateAnnouncement = async (onPrevious: string) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const response = await axios.get(onPrevious, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.results.length > 0) {
+        setAnnouncements(response.data.results);
+        setPagination(response.data);
+        setCurrentPage(currentPage - 1);
+      }
+    }
+  };
+
   const handleTags = async () => {
     const response = await api.get("/tags/");
-    if (response.data.length > 0) {
-      setTags(response.data);
+    if (response.data.results.length > 0) {
+      setTags(response.data.results);
     }
   };
 
@@ -191,7 +281,7 @@ export default function Announcements() {
                     renderValue={(selected) => (
                       <div>
                         {selected.map((value) => (
-                          <span key={value}>{tags[value-1].tag_name}, </span>
+                          <span key={value}>{tags[value - 1].tag_name}, </span>
                         ))}
                       </div>
                     )}
@@ -209,8 +299,9 @@ export default function Announcements() {
           </div>
         </form>
         <p className="text-blue-600 font-bold text-3xl mt-5 mb-5">
-          {annoucements.length > 0 &&
-            `${annoucements.length} anúncios encontrados`}
+          {pagination &&
+            pagination.count > 0 &&
+            `${pagination.count} anúncios encontrados`}
         </p>
         <div className="flex flex-col gap-6 mb-10">
           {annoucements.length > 0 ? (
@@ -247,6 +338,48 @@ export default function Announcements() {
               Nenhum anúncio encontrado
             </p>
           )}
+          <div className="flex justify-center items-center">
+            <Button
+              disabled={pagination && pagination?.next && !pagination?.previous}
+              className="text-blue-600 mr-8 font-bold bg-background hover:bg-background min-w-fit "
+              onClick={() =>
+                handlePreviousPaginateAnnouncement(pagination?.previous)
+              }
+            >
+              <ArrowBackIos sx={{ width: 12, height: 12 }} />
+            </Button>
+            <div className="flex gap-2 justify-center">
+              {pagination &&
+                new Array(Math.round(pagination?.count / quantityPaginate))
+                  .fill(0)
+                  .map((_, index) => (
+                    <div
+                      className={` ${
+                        index + 1 === currentPage &&
+                        "border-b-2 border-blue-600"
+                      } `}
+                    >
+                      <Button
+                        className={` bg-background hover:bg-background font-bold min-w-fit p-0 px-[2px] text-base   ${
+                          index + 1 == currentPage
+                            ? "text-blue-600"
+                            : "text-text-500"
+                        } `}
+                        onClick={() => handlePagePaginateAnnouncement(index+1)}
+                      >
+                        {index + 1}
+                      </Button>
+                    </div>
+                  ))}
+            </div>
+            <Button
+              disabled={pagination && pagination?.previous && !pagination?.next}
+              className="text-blue-600 ml-8 font-bold bg-background hover:bg-background min-w-fit "
+              onClick={() => handleNextPaginateAnnouncement(pagination?.next)}
+            >
+              <ArrowForwardIos sx={{ width: 12, height: 12 }} />
+            </Button>
+          </div>
         </div>
       </div>
     </SubLayout>

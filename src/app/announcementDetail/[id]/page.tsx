@@ -3,10 +3,13 @@ import { Typography, Grid, Rating, Button } from "@mui/material";
 import SubLayout from "../../sublayout";
 import Tag from "@/components/Tag";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FavoriteBorder, Favorite } from "@mui/icons-material";
 import api from "@/services/api";
 import axios from "axios";
+import { MyContext } from "@/contexts";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface AnnoucementDetailProps {
   params: {
@@ -49,7 +52,7 @@ interface Announcement {
     street: string;
     number: string;
     cep: string;
-  }
+  };
   curriculum: string;
   course: string;
   total_workload: string;
@@ -58,9 +61,12 @@ interface Announcement {
     id: number;
     email: string;
     name: string;
-  }
+  };
   images: Images[];
   company_name: string;
+  company_image: {
+    profile_picture: string;
+  };
   rate: number;
   total_rates: number;
   inscript: boolean;
@@ -72,8 +78,11 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
   const [value, setValue] = useState<number | null>(0);
   const [lat, setLat] = useState("");
   const [lon, setLon] = useState("");
-  const [announcement, setAnnouncement] = useState<Announcement[] | null>(null);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loadAnnouncemet, setLoadAnnouncemet] = useState(false);
+  const { data } = useContext(MyContext);
+  const router = useRouter();
+  const [creator, setCreator] = useState(false);
 
   const displayMap = async () => {
     if (announcement?.address) {
@@ -101,13 +110,22 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
 
     if (response.data) {
       setAnnouncement(response.data);
-      displayMap()
+      displayMap();
+      if (response.data.creator.id == data.id) {
+        setCreator(true);
+      }
     }
+    displayMap();
   };
 
   const handleFavoritedAnnouncement = async () => {
     await api.post(`/announces/${params.id}/save_unsave/`);
     setLoadAnnouncemet(!loadAnnouncemet);
+  };
+
+  const handleDeleteAnnouncement = async () => {
+    await api.delete(`/announces/${params.id}/`);
+    router.push("/announcements");
   };
 
   const handleRateAnnouncement = async (rate: number) => {
@@ -279,15 +297,18 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
             />
           </div>
         </Grid>
-        <div className="bg-white border border-text-500 border-opacity-10 sticky mx-40 bottom-10 mb-5 mt-5 w-full rounded-lg flex items-center">
+        <div className="bg-white border border-text-500 border-opacity-10 py-5 sticky mx-40 bottom-10 w-full rounded-lg flex items-center">
           <div className="flex items-center">
-            <div className="px-8 py-4 ">
-              <Image
-                src={"/assets/mapImage.png"}
-                alt="foto da empresa"
-                width={120}
-                height={120}
-              />
+          <div className="px-4 h-[100px] rounded-full object-cover">
+              {announcement?.company_image && (
+                <Image
+                  src={`http://127.0.0.1:8000${announcement?.company_image.profile_picture}`}
+                  alt="foto da empresa"
+                  width={100}
+                  height={100}
+                  className=" rounded-full h-[100px] object-cover"
+                />
+              )}
             </div>
             <div>
               <p className="text-text-500 font-bold text-3xl">
@@ -308,34 +329,56 @@ export default function AnnoucementDetail({ params }: AnnoucementDetailProps) {
             </div>
           </div>
           <div className="flex items-center justify-end flex-1">
-            <Button
-              disableRipple={true}
-              onClick={handleFavoritedAnnouncement}
-              className="hover:bg-white mr-4"
-            >
-              {announcement?.favorite ? (
-                <Favorite
-                  sx={{ width: 48, height: 48 }}
-                  className="text-danger-600"
-                />
-              ) : (
-                <FavoriteBorder
-                  className="text-text-500"
-                  sx={{ width: 48, height: 48 }}
-                />
-              )}
-            </Button>
-            <Button
-              className={` ${
-                announcement?.inscript
-                  ? " bg-danger-600 hover:bg-danger-600"
-                  : " bg-blue-600 hover:bg-blue-600"
-              } text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8`}
-              style={{ textTransform: "none" }}
-              onClick={handleInscriptAnnouncement}
-            >
-              {announcement?.inscript ? "Cancelar inscrição" : "Inscrever-se"}
-            </Button>
+            {creator ? (
+              <div>
+                <Button
+                  className="bg-danger-600 hover:bg-danger-600 text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8"
+                  style={{ textTransform: "none" }}
+                  onClick={handleDeleteAnnouncement}
+                >
+                  Excluir
+                </Button>
+                <Link
+                  className="bg-blue-600 hover:bg-blue-600 text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8"
+                  href={`/announcement_edit/${params.id}`}
+                >
+                  Editar
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <Button
+                  disableRipple={true}
+                  onClick={handleFavoritedAnnouncement}
+                  className="hover:bg-white mr-4"
+                >
+                  {announcement?.favorite ? (
+                    <Favorite
+                      sx={{ width: 48, height: 48 }}
+                      className="text-danger-600"
+                    />
+                  ) : (
+                    <FavoriteBorder
+                      className="text-text-500"
+                      sx={{ width: 48, height: 48 }}
+                    />
+                  )}
+                </Button>
+                <Button
+                  className={` ${
+                    announcement?.inscript
+                      ? " bg-danger-600 hover:bg-danger-600"
+                      : " bg-blue-600 hover:bg-blue-600"
+                  } text-white px-8 font-semibold py-4 rounded-lg text-xl font-poppins mr-8`}
+                  style={{ textTransform: "none" }}
+                  onClick={handleInscriptAnnouncement}
+                >
+                  {announcement?.inscript
+                    ? "Cancelar inscrição"
+                    : "Inscrever-se"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </Grid>

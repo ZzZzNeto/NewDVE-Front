@@ -31,9 +31,11 @@ module.exports = {
         },
         primary: {
           500: "#157AFE",
+          900: "#310274",
         },
         purple: {
           500: "#4F1091",
+          
         },
         gray: {
           100: "#FFFFFF",
