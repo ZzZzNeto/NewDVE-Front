@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import SubLayout from "./sublayout"
+import axios from "axios"
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CardHomepage from "@/components/CardHomepage";
 
@@ -11,6 +12,9 @@ import Image from "next/image";
 
 import daily from '@/../public/assets/dailyAccess.png'
 import map from '@/../public/assets/mapImage.png'
+import { useContext, useEffect, useState } from 'react';
+import { MyContext  } from '@/contexts'
+import "react-multi-carousel/lib/styles.css";
 
 const responsive = {
   superLargeDesktop: {
@@ -24,6 +28,41 @@ const responsive = {
 }
 
 export default function Home() {
+  const [announcements, setAnnouncements] = useState([])
+  const { data, updateData } = useContext(MyContext);
+
+  const getAnnounces = async () => {
+    if (data.access) {
+        let announces = []
+        const a = await axios.get(
+            `http://127.0.0.1:8000/api/announces/`
+        );
+        announces = announces.concat(a.data.results)
+        try{
+          const b = await axios.get(
+            `http://127.0.0.1:8000/api/announces/?page=2`
+          );
+          announces = announces.concat([...b.data.results])
+        }catch{
+          console.log('error')
+        }
+        try{
+          const c = await axios.get(
+            `http://127.0.0.1:8000/api/announces/?page=3`
+          );
+          announces = announces.concat(c.data.results)
+        }catch{
+          console.log('error')
+        }
+        console.log(announces)
+        setAnnouncements(announces)
+    }
+  }
+
+  useEffect(() => {
+    getAnnounces()
+  },[data])
+
   return (
     <SubLayout>
       <div className="pt-[30px] pb-[30px] pl-[270px] pr-[270px] bg-home-bg max-h-fit bg-no-repeat min-h-[800px] w-full">
@@ -37,10 +76,9 @@ export default function Home() {
       <div className="pl-[270px] pr-[270px] h-fit my-[50px] w-full justify-center items-center">
         <h1 className="text-[40px] text-center font-bold mb-[50px] ">Anúncios recentes</h1>
         <Carousel centerMode responsive={responsive} infinite>
-          <div className="w-[300px]"><CardHomepage companyName="Socorro" rating={4.5} quantity_rating={129} city="Pau dos Ferros" tags={[{ name: 'Tecnologia', icon: 'https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg' }]} image="https://patasdacasa.com.br/sites/patasdacasa/files/styles/webp/public/noticias/2019/10/gato-obeso-quando-o-aumento-de-peso-indica-um-problema-mais-serio.jpg.webp?itok=5KmFBNjw" /></div>
-          <div className="w-[300px]"><CardHomepage companyName="Socorro" rating={4.5} quantity_rating={129} city="Pau dos Ferros" tags={[{ name: 'Tecnologia', icon: 'https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg' }]} image="https://patasdacasa.com.br/sites/patasdacasa/files/styles/webp/public/noticias/2019/10/gato-obeso-quando-o-aumento-de-peso-indica-um-problema-mais-serio.jpg.webp?itok=5KmFBNjw" /></div>
-          <div className="w-[300px]"><CardHomepage companyName="Socorro" rating={4.5} quantity_rating={129} city="Pau dos Ferros" tags={[{ name: 'Tecnologia', icon: 'https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg' }]} image="https://patasdacasa.com.br/sites/patasdacasa/files/styles/webp/public/noticias/2019/10/gato-obeso-quando-o-aumento-de-peso-indica-um-problema-mais-serio.jpg.webp?itok=5KmFBNjw" /></div>
-          <div className="w-[300px]"><CardHomepage companyName="Socorro" rating={4.5} quantity_rating={129} city="Pau dos Ferros" tags={[{ name: 'Tecnologia', icon: 'https://static.vecteezy.com/system/resources/thumbnails/002/363/076/small/computer-icon-free-vector.jpg' }]} image="https://patasdacasa.com.br/sites/patasdacasa/files/styles/webp/public/noticias/2019/10/gato-obeso-quando-o-aumento-de-peso-indica-um-problema-mais-serio.jpg.webp?itok=5KmFBNjw" /></div>
+        {announcements.length > 0 && announcements.map(({ id,company_name,company_image,main_image,rate,total_rates,city,tags }, index) => (
+            <div key={index} className="w-[300px]"><CardHomepage id={id} companyName={company_name} companyImage={`http://127.0.0.1:8000${company_image.profile_picture}`} rating={rate} quantity_rating={total_rates} city={city} tags={tags} image={`http://127.0.0.1:8000${main_image.image}`}/></div>    
+        ))}  
         </Carousel>
       </div>
       <div className="pl-[270px] pr-[270px] pt-[100px] w-full">

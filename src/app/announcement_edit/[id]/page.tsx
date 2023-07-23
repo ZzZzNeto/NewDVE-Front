@@ -153,7 +153,7 @@ export default function Profile({ params }: AnnoucementEditProps) {
             );
               
             console.log(response.status)
-            // router.push(`/announcementDetail/${params.id}/`)
+            router.push(`/announcementDetail/${params.id}/`)
         }catch{
             console.log("error")
         }

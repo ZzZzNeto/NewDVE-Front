@@ -130,13 +130,13 @@ export default function Profile() {
                             </div>}
                             <div className="mt-[10px]">
                                 <p className="text-[18px] mr-[50px] text-gray-800"><span className="mr-[10px] font-bold">Endereço: </span>{data.address ? (`${data.address.street}, ${data.address.number}, ${data.address.city} - ${data.address.state}`) : ("Nenhum")}</p>
-                                <Image 
+                                {data?.address && <Image 
                                     className="my-[30px]"
                                     width={600}
                                     height={400}
                                     src={`https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${lon},${lat}&zoom=15.9318&marker=lonlat:${lon},${lat};type:material;color:%23ff0000;size:large;icon:home;iconsize:small&apiKey=3b011d230823499d831285fb00b49c04`}
                                     alt="map"
-                                    />
+                                />}
                             </div>
                             <div className="mt-[10px]">
                                 <p className="mr-[10px] text-[18px] text-gray-800 font-bold">Sobre mim: </p>
