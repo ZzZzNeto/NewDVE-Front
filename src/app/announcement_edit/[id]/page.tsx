@@ -16,15 +16,41 @@ import { useContext, useEffect, useState } from 'react';
 import { MyContext } from '@/contexts'
 import { Button, Grid, TextField, Typography, Accordion, AccordionSummary, AccordionDetails, Checkbox, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
+interface AnnoucementEditProps {
+    params: {
+      id: string;
+    };
+  }
 
-export default function Profile() {
+export default function Profile({ params }: AnnoucementEditProps) {
     const [images, setImages] = useState([]);
+    const [announcement, setAnnouncement] = useState('')
     const { data, updateData } = useContext(MyContext);
+    const [wait , setWait] = useState(false)
     const [tags, setTags] = useState([]);
     const [courses, setCourses] = useState([])
     const [selectedTags, setSelectedTags] = useState([])
     const router = useRouter()
     const [curricular,setCurricular] = useState(false)
+
+    const getAnnouncement = async () => {
+        if (data.access) {
+            const x = await axios.get(
+                `http://127.0.0.1:8000/api/announces/${params.id}/`, { headers: { Authorization: `Bearer ${data.access}` } }
+            );
+            setAnnouncement(x.data)
+            let list = []
+            if(x.data.tags){
+                x.data.tags.map((tag, index) =>
+                    list.push(tag.id)
+                )
+                setSelectedTags(list)
+            }
+            setImages(x.data.images && [...x.data.images])
+            setCurricular(x.data.curriculum)
+            setWait(true)
+        }
+    }
 
     const getTags = async () => {
         if (data.access) {
@@ -33,6 +59,7 @@ export default function Profile() {
             );
             setTags(tags.data.results)
         }
+        
     }
 
     const getCourses = async () => {
@@ -45,18 +72,31 @@ export default function Profile() {
     }
 
     useEffect(() => {
+        console.log(data)
+        getAnnouncement()
         getTags()
         getCourses()
-        if (data){
-            setValue("company_name", data?.name)
-            setValue("state", data?.address?.state)
-            setValue("city", data?.address?.city)
-            setValue("street", data?.address?.street)
-            setValue("number", data?.address?.number)
-            setValue("district", data?.address?.district)
-            setValue("CEP", data?.address?.cep)
+        if (announcement){
+            setValue("company_name", announcement?.company_name)
+            setValue("state", announcement?.address?.state)
+            setValue("city", announcement?.address?.city)
+            setValue("street", announcement?.address?.street)
+            setValue("number", announcement?.address?.number)
+            setValue("district", announcement?.address?.district)
+            setValue("CEP", announcement?.address?.cep)
+            setValue("deadline", announcement?.deadline)
+            setValue("schedule", announcement?.schedule)
+            setValue("salary", announcement?.salary)
+            setValue("journey", announcement?.journey)
+            setValue("vacancies", announcement?.vacancies)
+            setValue("benefits", announcement?.benefits)
+            setValue("requeriments", announcement?.requeriments)
+            setValue("description", announcement?.description)
+            setValue("course", announcement?.course)
+            setValue("total_workload", announcement?.total_workload)
+            setValue("curriculum", announcement?.curriculum)
         }
-    }, [data])
+    }, [data, wait])
 
     const getFormatedDate = (currentDate: string) => {
         return currentDate.split('/').reverse().join('-');
@@ -97,26 +137,23 @@ export default function Profile() {
         )
         console.log(sendtags)
         data.tags = selectedTags
+        data.images = images
         data.curriculum = curricular
         console.log(curricular)
-        if(images.length == 0){
-            setError("images", {message : "Ao menos uma imagem deve ser anexada"})
-        }else{
-            data.images = images
-            console.log(data.images)
-            create_announcement(data)
-        }
+        update_announcement(data)
+        
     });
 
-    const create_announcement = async (dataset? : any) => {
+    const update_announcement = async (dataset? : any) => {
         try{
-            const response = await axios.post(
-            `http://127.0.0.1:8000/api/announces/`,
+            const response = await axios.patch(
+            `http://127.0.0.1:8000/api/announces/${params.id}/`,
                 dataset,
                 { headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
             );
               
-            outer.push('/profile')
+            console.log(response.status)
+            // router.push(`/announcementDetail/${params.id}/`)
         }catch{
             console.log("error")
         }
@@ -154,8 +191,8 @@ export default function Profile() {
                 <div className='border border-gray-400 bg-gray-300 px-[100px] py-[50px] flex-wrap flex items-center justify-center'>
                     {images.length > 0 && images.map((item, index) =>
                         <div className=" flex-row flex w-[100px] h-[100px] mr-[20px]">
-                            <Link key={index} className=" text-gray-600 w-[100px] h-[100px] mr-[20px]" target="_blank" href={URL.createObjectURL(item)}>
-                                <Image width={0} height={0} sizes="100vw" className="rounded-[20px] w-full h-full object-cover" alt={item.name} src={URL.createObjectURL(item)} />
+                            <Link key={index} className=" text-gray-600 w-[100px] h-[100px] mr-[20px]" target="_blank" href={item.image ? `http://127.0.0.1:8000${item.image}` : URL.createObjectURL(item)}>
+                                <Image width={0} height={0} sizes="100vw" className="rounded-[20px] w-full h-full object-cover" alt={item.name} src={item.image ? `http://127.0.0.1:8000${item.image}` : URL.createObjectURL(item)} />
                                 <p className="truncate w-[100px]">{item.name}</p>
                             </Link>
                             <button type="button" onClick={() => removeImage(index)} className={` absolute bg-red-600 hover:bg-red-700 rounded-full top-[320px] w-[30px] h-[30px] p-[2px]`}><CloseIcon className="text-white w-[20px] h[20px]"/></button>
@@ -189,7 +226,7 @@ export default function Profile() {
                         <Controller
                             name="journey"
                             control={control}
-                            render={({ field }) => <TextField error={errors.journey && true} className="w-full" id="outlined-basic" label="Jornada de trabalho" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField InputLabelProps={announcement?.journey && { shrink: true }} error={errors.journey && true} className="w-full" id="outlined-basic" label="Jornada de trabalho" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.journey?.message}
@@ -199,7 +236,7 @@ export default function Profile() {
                         <Controller
                             name="vacancies"
                             control={control}
-                            render={({ field }) => <TextField error={errors.vacancies && true} className="w-full" id="outlined-basic" label="Vagas" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField InputLabelProps={announcement?.vacancies && { shrink: true }} error={errors.vacancies && true} className="w-full" id="outlined-basic" label="Vagas" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.vacancies?.message}
@@ -217,7 +254,7 @@ export default function Profile() {
                         </AccordionSummary>
                         <AccordionDetails className="flex">
                             {tags.map(({ id, icon, tag_name }, index) =>
-                                <Controller
+                                <Controller 
                                     name="tags"
                                     control={control}
                                     render={({ field }) =>
@@ -238,7 +275,7 @@ export default function Profile() {
                         <Controller
                             name="schedule"
                             control={control}
-                            render={({ field }) => <TextField error={errors.schedule && true} className="w-full" id="outlined-basic" label="Horario" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField InputLabelProps={announcement?.schedule && { shrink: true }} error={errors.schedule && true} className="w-full" id="outlined-basic" label="Horario" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.schedule?.message}
@@ -248,7 +285,7 @@ export default function Profile() {
                         <Controller
                             name="salary"
                             control={control}
-                            render={({ field }) => <TextField error={errors.salary && true} className="w-full" id="outlined-basic" label="Salario" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField InputLabelProps={announcement?.salary && { shrink: true }} error={errors.salary && true} className="w-full" id="outlined-basic" label="Salario" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.salary?.message}
@@ -269,7 +306,7 @@ export default function Profile() {
                     <Controller
                         name="benefits"
                         control={control}
-                        render={({ field }) => <TextField error={errors.benefits && true} className="w-full" id="outlined-basic" label="Beneficios" {...field} variant="outlined" />}
+                        render={({ field }) => <TextField InputLabelProps={announcement?.benefits && { shrink: true }} error={errors.benefits && true} className="w-full" id="outlined-basic" label="Beneficios" {...field} variant="outlined" />}
                     />
                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                         {errors.benefits?.message}
@@ -279,7 +316,7 @@ export default function Profile() {
                     <Controller
                         name="requeriments"
                         control={control}
-                        render={({ field }) => <TextField error={errors.requeriments && true} className="w-full" id="outlined-basic" label="Requisitos" {...field} variant="outlined" />}
+                        render={({ field }) => <TextField InputLabelProps={announcement?.requeriments && { shrink: true }} error={errors.requeriments && true} className="w-full" id="outlined-basic" label="Requisitos" {...field} variant="outlined" />}
                     />
                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                         {errors.requeriments?.message}
@@ -289,7 +326,7 @@ export default function Profile() {
                     <Controller
                         name="description"
                         control={control}
-                        render={({ field }) => <TextField error={errors.description && true} className=" w-full" id="outlined-multiline-static" label="Descrição" {...field} multiline rows={4} />}
+                        render={({ field }) => <TextField InputLabelProps={announcement?.description && { shrink: true }} error={errors.description && true} className=" w-full" id="outlined-multiline-static" label="Descrição" {...field} multiline rows={4} />}
                     />
                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                         {errors.description?.message}
@@ -300,8 +337,9 @@ export default function Profile() {
                         <Controller
                             name="curriculum"
                             control={control}
-                            render={({ field }) => <div className="flex items-center">
-                                <Checkbox {...field} onChange={(e) => setCurricular(e.target.checked)}/>
+                            render={({ field }) => <div className="flex items-center">{
+                                <Checkbox checked={curricular} {...field} onChange={(e) => setCurricular(e.target.checked)}/> 
+                                }
                                 <p className="text-[18px] text-blue-600 ">Curricular</p>
                             </div>}
                         />
@@ -313,7 +351,7 @@ export default function Profile() {
                         <Controller
                             name="total_workload"
                             control={control}
-                            render={({ field }) => <TextField disabled={curricular} error={errors.total_workload && true} className="w-full" id="outlined-basic" label="Carga horaria total" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField disabled={!curricular} InputLabelProps={announcement?.total_workload && { shrink: true }} error={errors.total_workload && true} className="w-full" id="outlined-basic" label="Carga horaria total" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.total_workload?.message}
@@ -323,11 +361,12 @@ export default function Profile() {
                         <Controller
                         name="course"
                         control={control}
+                        defaultValue={announcement && announcement?.course}
                         render={({ field }) => (
                             <FormControl fullWidth>
                             <InputLabel id="course">Curso</InputLabel>
                             <Select
-                                disabled={curricular}
+                                disabled={!curricular}
                                 labelId="course"
                                 id="demo-simple-select"
                                 label="Curso"
@@ -354,7 +393,7 @@ export default function Profile() {
                         <Controller
                             name="state"
                             control={control}
-                            render={({ field }) => <TextField error={errors.state && true} InputLabelProps={data?.address?.state && { shrink: true }}  className="w-full" id="outlined-basic" label="Estado" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.state && true} InputLabelProps={announcement?.address?.state && { shrink: true }}  className="w-full" id="outlined-basic" label="Estado" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.state?.message}
@@ -364,7 +403,7 @@ export default function Profile() {
                         <Controller
                             name="city"
                             control={control}
-                            render={({ field }) => <TextField error={errors.city && true} InputLabelProps={data?.address?.city && { shrink: true }}  className="w-full" id="outlined-basic" label="Cidade" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.city && true} InputLabelProps={announcement?.address?.city && { shrink: true }}  className="w-full" id="outlined-basic" label="Cidade" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.city?.message}
@@ -374,7 +413,7 @@ export default function Profile() {
                         <Controller
                             name="number"
                             control={control}
-                            render={({ field }) => <TextField error={errors.number && true} InputLabelProps={data?.address?.number && { shrink: true }}  className="w-full" id="outlined-basic" label="Numero" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.number && true} InputLabelProps={announcement?.address?.number && { shrink: true }}  className="w-full" id="outlined-basic" label="Numero" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.number?.message}
@@ -384,7 +423,7 @@ export default function Profile() {
                         <Controller
                             name="cep"
                             control={control}
-                            render={({ field }) => <TextField error={errors.cep && true} InputLabelProps={data?.address?.cep && { shrink: true }}  className="w-full" id="outlined-basic" label="CEP" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.cep && true} InputLabelProps={announcement?.address?.cep && { shrink: true }}  className="w-full" id="outlined-basic" label="CEP" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.cep?.message}
@@ -396,7 +435,7 @@ export default function Profile() {
                         <Controller
                             name="street"
                             control={control}
-                            render={({ field }) => <TextField error={errors.street && true} InputLabelProps={data?.address?.street && { shrink: true }}  className="w-full" id="outlined-basic" label="Rua" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.street && true} InputLabelProps={announcement?.address?.street && { shrink: true }}  className="w-full" id="outlined-basic" label="Rua" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.street?.message}
@@ -406,7 +445,7 @@ export default function Profile() {
                         <Controller
                             name="district"
                             control={control}
-                            render={({ field }) => <TextField error={errors.street && true} InputLabelProps={data?.address?.district && { shrink: true }}  className="w-full" id="outlined-basic" label="Bairro" {...field} variant="outlined" />}
+                            render={({ field }) => <TextField error={errors.street && true} InputLabelProps={announcement?.address?.district && { shrink: true }} className="w-full" id="outlined-basic" label="Bairro" {...field} variant="outlined" />}
                         />
                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                             {errors.district?.message}
@@ -414,8 +453,8 @@ export default function Profile() {
                     </div>
                 </div>   
                 <div className="flex justify-between mt-[25px]">
-                    <Button variant="contained" style={{textTransform:'none'}} className="bg-red-500 text-[15px] hover:bg-red-600 rounded-[15px] py-[10px]" href="/profile">Cancelar</Button>
-                    <Button variant="contained" style={{textTransform:'none'}}  className="bg-blue-700 text-[15px] hover:bg-blue-800 rounded-[15px] py-[10px]" type='submit'>Criar anúncio</Button>
+                    <Button variant="contained" style={{textTransform:'none'}} className="bg-red-500 text-[15px] hover:bg-red-600 rounded-[15px] py-[10px]" href={`/announcementDetail/${params.id}`}>Cancelar</Button>
+                    <Button variant="contained" style={{textTransform:'none'}}  className="bg-blue-700 text-[15px] hover:bg-blue-800 rounded-[15px] py-[10px]" type='submit'>Salvar</Button>
                 </div>                 
             </form>
         </SubLayout>

@@ -29,6 +29,20 @@ export default function Profile() {
     const router = useRouter()
     const [lat, setLat] = useState('')
     const [lon, setLon] = useState('')
+    const [schoolings, setSchoolings] = useState([])
+
+    const getSchoolings = async () => {
+        if (data.access) {
+            const schooling = await axios.get(
+                `http://127.0.0.1:8000/api/users/schooling/`, { headers: { Authorization: `Bearer ${data.access}` } }
+            );
+            schooling.data.map((scho, index) => {
+                if(data.schooling == scho[0]){
+                    setSchoolings(scho[1])
+                }
+            })
+        }
+    }
 
     const displayMap = async () => {
         if(data?.address){
@@ -47,6 +61,7 @@ export default function Profile() {
 
     useEffect(() => {
         displayMap()
+        getSchoolings()
     }, [data])
 
     const logout = () => {
@@ -152,7 +167,7 @@ export default function Profile() {
                                 ))
                             ) : ("Nenhum"))}</p>
                             <p className="text-[18px] mr-[50px] text-gray-800 my-[10px]"><span className="mr-[10px] font-bold">Portifolio:</span>{data.portfolio ? (data.portfolio) : ("Nenhum")}</p>
-                            <p className="text-[18px] mr-[50px] text-gray-800 my-[10px]"><span className="mr-[10px] font-bold">Escolaridade:</span>{data.schooling ? (data.schooling) : ("Nao informado")}</p>
+                            <p className="text-[18px] mr-[50px] text-gray-800 my-[10px]"><span className="mr-[10px] font-bold">Escolaridade:</span>{schoolings ? (schoolings) : ("Nao informado")}</p>
                         </div>}
                         {data.group != "Company" && data.group != "IFRN_coordenation" &&
                         <div id="inscriptions" className="my-[20px]">

@@ -15,7 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
-import { Button, Grid, TextField, Typography, Accordion, AccordionSummary, AccordionDetails, Checkbox } from "@mui/material";
+import { Button, Grid, TextField, Typography, Accordion, AccordionSummary, AccordionDetails, Checkbox, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
 const responsive = {
     superLargeDesktop: {
@@ -35,13 +35,23 @@ export default function Profile() {
     const [selectedTags, setSelectedTags] = useState([])
     const router = useRouter()
     const [profile, setProfile] = useState(undefined)
+    const [schoolings, setSchoolings] = useState([])
 
     const getTags = async () => {
         if (data.access) {
             const tags = await axios.get(
                 `http://127.0.0.1:8000/api/tags/`, { headers: { Authorization: `Bearer ${data.access}` } }
             );
-            setTags(tags.data)
+            setTags(tags.data.results)
+        }
+    }
+
+    const getSchoolings = async () => {
+        if (data.access) {
+            const schooling = await axios.get(
+                `http://127.0.0.1:8000/api/users/schooling/`, { headers: { Authorization: `Bearer ${data.access}` } }
+            );
+            setSchoolings(schooling.data)
         }
     }
 
@@ -67,6 +77,7 @@ export default function Profile() {
 
     useEffect(() => {
         getTags()
+        getSchoolings()
         setFiles(data.files && [...data.files])
         let list = selectedTags
         if(data.preference_tags){
@@ -85,7 +96,7 @@ export default function Profile() {
             setValue("street", data?.address?.street)
             setValue("number", data?.address?.number)
             setValue("district", data?.address?.district)
-            setValue("CEP", data?.address?.cep)
+            setValue("cep", data?.address?.cep)
             setValue("description", data?.description)
             setValue("contact_mail", data?.contact_mail)
             setValue("phone", data?.phone)
@@ -114,13 +125,13 @@ export default function Profile() {
         name: yup.string().required("Este campo é obrigatório"),
         birth_date: yup.date().max(getFormatedDate(new Date().toLocaleDateString())).nullable(),
         ocupattion: yup.string().nullable(),
-        state: yup.string().required("Este campo é obrigatório"),
+        state: yup.string().required("Este campo é obrigatório").min(2, 'A sigla do estado deve ter exatamente 2 digitos').max(2, 'A sigla do estado deve ter exatamente 2 digitos'),
         city: yup.string().required("Este campo é obrigatório"),
         cnpj: yup.string().nullable(),
         street: yup.string().nullable(),
         number: yup.string().nullable(),
         district: yup.string().nullable(),
-        CEP: yup.string().nullable(),
+        CEP: yup.string().required("Este campo é obrigatório"),
         tags: yup.array().of(yup.string()).nullable(),
         description: yup.string().nullable(),
         contact_mail: yup.string().email("Email inválido").nullable(),
@@ -271,7 +282,7 @@ export default function Profile() {
                                     <Controller
                                         name="state"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.state && true} InputLabelProps={data?.address?.state && { shrink: true }} className="w-full" id="outlined-basic" label="Estado" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.state && true} InputLabelProps={data?.address?.state && { shrink: true }} className="w-full" id="outlined-basic" label="Estado (sigla)" {...field} variant="outlined" />}
                                     />
                                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                         {errors.state?.message}
@@ -433,9 +444,27 @@ export default function Profile() {
                                     {errors.portfolio?.message}
                                 </Typography>
                                 <Controller
-                                    name="schooling"
-                                    control={control}
-                                    render={({ field }) => <TextField error={errors.schooling && true} InputLabelProps={data.schooling && { shrink: true }}  className="w-full" id="outlined-basic" label="Escolaridade" {...field} variant="outlined" />}
+                                name="schooling"
+                                control={control}
+                                defaultValue={data && data?.schooling}
+                                render={({ field }) => (
+                                    <FormControl fullWidth>
+                                    <InputLabel id="schooling">Escolaridade</InputLabel>
+                                    <Select
+                                        labelId="schooling"
+                                        id="demo-simple-select"
+                                        label="Escolaridade"
+                                        {...field}
+                                        onChange={(event) =>
+                                        field.onChange(String(event.target.value))
+                                        }
+                                    >
+                                        {schoolings && schoolings.map((schooling , index) => (
+                                        <MenuItem value={schooling[0]}>{schooling[1]}</MenuItem>
+                                        ))}
+                                    </Select>
+                                    </FormControl>
+                                )}
                                 />
                                 <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                     {errors.schooling?.message}

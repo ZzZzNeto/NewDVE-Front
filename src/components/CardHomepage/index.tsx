@@ -85,7 +85,7 @@ export default function CardHomepage({
         </div>
         <div className="flex justify-between mt-4 mb-4 items-center">
           <Typography className="text-xs font-bold">{city}</Typography>
-          <Link href={`/announcement`} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">ver mais</Link>
+          <Link href={`/announcementDetail/${id}`} className="text-white text-[16px] font-bold bg-blue-600 rounded-full px-[10px] py-[3px]">ver mais</Link>
         </div>
       </div>
     </div>
