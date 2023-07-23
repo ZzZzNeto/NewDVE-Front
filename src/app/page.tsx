@@ -35,12 +35,12 @@ export default function Home() {
     if (data.access) {
         let announces = []
         const a = await axios.get(
-            `http://127.0.0.1:8000/api/announces/`
+            `http://127.0.0.1:8000/api/announces/`,{ headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
         );
         announces = announces.concat(a.data.results)
         try{
           const b = await axios.get(
-            `http://127.0.0.1:8000/api/announces/?page=2`
+            `http://127.0.0.1:8000/api/announces/?page=2`, { headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
           );
           announces = announces.concat([...b.data.results])
         }catch{
@@ -48,7 +48,7 @@ export default function Home() {
         }
         try{
           const c = await axios.get(
-            `http://127.0.0.1:8000/api/announces/?page=3`
+            `http://127.0.0.1:8000/api/announces/?page=3`, { headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
           );
           announces = announces.concat(c.data.results)
         }catch{
@@ -73,6 +73,7 @@ export default function Home() {
           <Link className="text-white text-[24px] font-bold ml-[50px]" href={'/login'}>Entrar <ArrowForwardIcon /></Link>
         </div>
       </div>
+      {data &&
       <div className="pl-[270px] pr-[270px] h-fit my-[50px] w-full justify-center items-center">
         <h1 className="text-[40px] text-center font-bold mb-[50px] ">Anúncios recentes</h1>
         <Carousel centerMode responsive={responsive} infinite>
@@ -80,7 +81,7 @@ export default function Home() {
             <div key={index} className="w-[300px]"><CardHomepage id={id} companyName={company_name} companyImage={`http://127.0.0.1:8000${company_image.profile_picture}`} rating={rate} quantity_rating={total_rates} city={city} tags={tags} image={`http://127.0.0.1:8000${main_image.image}`}/></div>    
         ))}  
         </Carousel>
-      </div>
+      </div>}
       <div className="pl-[270px] pr-[270px] pt-[100px] w-full">
         <div className="flex my-[50px] w-full">
           <div className="mr-[50px]">
