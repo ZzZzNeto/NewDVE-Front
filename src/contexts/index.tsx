@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useState, useEffect ,ReactNode } from 'react';
+import { useSearchParams  } from 'next/navigation'
 import axios from "axios"
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
@@ -20,10 +21,12 @@ export function MyContextProvider({ children }: MyContextProviderProps) {
   const [data, setData] = useState('');
   const router = useRouter()
   const path = usePathname()
+  const params = useSearchParams ()
+  const external = params.get('token')
 
   useEffect(() => {
     
-    let access = localStorage.getItem('token')
+    let access = localStorage.getItem('token') || external
     let refresh = localStorage.getItem('refresh')
 
     if(access){
