@@ -1,4 +1,5 @@
 "use client";
+import SubLayout from "@/app/sublayout";
 import Inscript from "@/components/inscript";
 import api from "@/services/api";
 import { useEffect, useState } from "react";
@@ -33,6 +34,7 @@ export default function Inscripts({ params }: InscriptsProps) {
   }, []);
 
   return (
+    <SubLayout>
     <div className="w-full h-screen bg-background px-[270px] mb-10">
       <p className="text-center font-bold mt-5 text-text-500">
         Lista de inscritos
@@ -46,5 +48,6 @@ export default function Inscripts({ params }: InscriptsProps) {
           ))}
       </div>
     </div>
+    </SubLayout>
   );
 }

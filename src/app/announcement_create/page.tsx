@@ -11,6 +11,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import SubLayout from '@/app/sublayout'
 import Link from "next/link";
 import Image from 'next/image';
+import { useSearchParams  } from 'next/navigation'
 import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { MyContext } from '@/contexts'
@@ -25,6 +26,8 @@ export default function Profile() {
     const [selectedTags, setSelectedTags] = useState([])
     const router = useRouter()
     const [curricular,setCurricular] = useState(false)
+    const params = useSearchParams ()
+    const access = params.get('token')
 
     const getTags = async () => {
         if (data.access) {
@@ -44,7 +47,21 @@ export default function Profile() {
         }
     }
 
+    const incomming = async () => {
+        try{
+            const user = await axios.get(
+              `http://127.0.0.1:8000/api/users/me`, {headers: { Authorization: `Bearer ${access}` }} 
+            );
+            updateData(user.data)
+            return true
+          }catch{
+              return false
+        }}
+
     useEffect(() => {
+        if(access){
+            incomming()
+        }
         getTags()
         getCourses()
         if (data){

@@ -108,6 +108,9 @@ export default function Profile() {
     }, [data])
 
     const image = () => {
+        if (profile){
+            return URL.createObjectURL(profile)
+        }
         if (data.profile_picture) {
             if (data.profile_picture[0] == "/") {
                 return "http://127.0.0.1:8000" + data.profile_picture
@@ -128,10 +131,10 @@ export default function Profile() {
         state: yup.string().required("Este campo é obrigatório").min(2, 'A sigla do estado deve ter exatamente 2 digitos').max(2, 'A sigla do estado deve ter exatamente 2 digitos'),
         city: yup.string().required("Este campo é obrigatório"),
         cnpj: yup.string().nullable(),
-        street: yup.string().nullable(),
-        number: yup.string().nullable(),
-        district: yup.string().nullable(),
-        CEP: yup.string().required("Este campo é obrigatório"),
+        street: yup.string().required("Este campo é obrigatório"),
+        number: yup.string().required("Este campo é obrigatório"),
+        district: yup.string().required("Este campo é obrigatório"),
+        cep: yup.string().required("Este campo é obrigatório"),
         tags: yup.array().of(yup.string()).nullable(),
         description: yup.string().nullable(),
         contact_mail: yup.string().email("Email inválido").nullable(),
@@ -143,7 +146,7 @@ export default function Profile() {
         portfolio: yup.string().nullable(),
         schooling: yup.string().nullable(),
         profile_picture: yup.mixed().nullable()
-    }).required();
+    });
 
 
     const { control, handleSubmit,setValue, formState: { errors } } = useForm({
@@ -160,7 +163,8 @@ export default function Profile() {
         data.profile_picture = profile
         data.files = files
         update_user(data)
-    });
+    }, ((errors) => console.log(errors)
+    ));
 
 
     const update_user = async (dataset? : any) => {
@@ -170,7 +174,8 @@ export default function Profile() {
                 dataset,
                 { headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
             );
-              
+            
+            console.log(response.data)
             localStorage.setItem('token',response.data.access)
             localStorage.setItem('refresh',response.data.refresh)
                     
@@ -351,7 +356,7 @@ export default function Profile() {
                                     <Controller
                                         name="contact_mail"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.state && true} InputLabelProps={data?.contact_mail && { shrink: true }} className="w-full" id="outlined-basic" label="Email para contato" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.contact_mail && true} InputLabelProps={data?.contact_mail && { shrink: true }} className="w-full" id="outlined-basic" label="Email para contato" {...field} variant="outlined" />}
                                     />
                                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                         {errors.contact_mail?.message}
@@ -361,7 +366,7 @@ export default function Profile() {
                                     <Controller
                                         name="phone"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.city && true} InputLabelProps={data?.phone && { shrink: true }} className="w-full" id="outlined-basic" label="Telefone" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.phone && true} InputLabelProps={data?.phone && { shrink: true }} className="w-full" id="outlined-basic" label="Telefone" {...field} variant="outlined" />}
                                     />
                                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                             {errors.phone?.message}
@@ -373,7 +378,7 @@ export default function Profile() {
                                     <Controller
                                         name="instagram"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.state && true} InputLabelProps={data?.instagram && { shrink: true }} className="w-full" id="outlined-basic" label="Instagram" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.instagram && true} InputLabelProps={data?.instagram && { shrink: true }} className="w-full" id="outlined-basic" label="Instagram" {...field} variant="outlined" />}
                                     />
                                     <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                         {errors.instagram?.message}
@@ -383,7 +388,7 @@ export default function Profile() {
                                     <Controller
                                         name="linkedin"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.city && true} InputLabelProps={data?.linkedin && { shrink: true }} className="w-full" id="outlined-basic" label="Linkedin" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.linkedin && true} InputLabelProps={data?.linkedin && { shrink: true }} className="w-full" id="outlined-basic" label="Linkedin" {...field} variant="outlined" />}
                                     />
                                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                             {errors.linkedin?.message}
@@ -393,7 +398,7 @@ export default function Profile() {
                                     <Controller
                                         name="twitter"
                                         control={control}
-                                        render={({ field }) => <TextField error={errors.city && true} InputLabelProps={data?.twitter && { shrink: true }} className="w-full" id="outlined-basic" label="Twitter" {...field} variant="outlined" />}
+                                        render={({ field }) => <TextField error={errors.twitter && true} InputLabelProps={data?.twitter && { shrink: true }} className="w-full" id="outlined-basic" label="Twitter" {...field} variant="outlined" />}
                                     />
                                         <Typography className="text-red-600 h-[25px] text-[12px] mb-[3px]">
                                             {errors.twitter?.message}
