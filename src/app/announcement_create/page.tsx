@@ -55,13 +55,13 @@ export default function Profile() {
             updateData(incoming.data)
             localStorage.setItem('token',incoming.data.access)
             localStorage.setItem('refresh',incoming.data.refresh)
-            return true
           }catch{
-              return false
+              console.log('error')
         }}
 
     useEffect(() => {
         if(access){
+            localStorage.setItem('token',access)
             incomming()
         }
         getTags()
