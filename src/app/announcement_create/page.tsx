@@ -49,10 +49,12 @@ export default function Profile() {
 
     const incomming = async () => {
         try{
-            const user = await axios.get(
+            const incoming = await axios.get(
               `http://127.0.0.1:8000/api/users/me`, {headers: { Authorization: `Bearer ${access}` }} 
             );
-            updateData(user.data)
+            updateData(incoming.data)
+            localStorage.setItem('token',incoming.data.access)
+            localStorage.setItem('refresh',incoming.data.refresh)
             return true
           }catch{
               return false
@@ -133,7 +135,7 @@ export default function Profile() {
                 { headers: { Authorization: `Bearer ${data.access}`, 'Content-Type' : 'multipart/form-data' }}
             );
               
-            outer.push('/profile')
+            router.push('/profile')
         }catch{
             console.log("error")
         }
